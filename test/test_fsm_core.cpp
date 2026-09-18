@@ -237,7 +237,7 @@ bool test_defuse_tolerance_window_preserved() {
 }
 
 /**
- * @test Teste 6: Soltura do Botão > 5.000 ms com Progresso > 50% Reduz para Exatamente 50%
+ * @test Teste 6: Soltura do Botão > Tolerância Zera Progresso (0%) e Exige Nova Senha CT para Recomeçar do Zero
  * @ref AC-09, AC-14
  */
 bool test_defuse_penalty_above_half_preserved_at_fifty_percent() {
@@ -264,8 +264,35 @@ bool test_defuse_penalty_above_half_preserved_at_fifty_percent() {
     simTime += 5100;
     rig.fsm.update(simTime); // Dispara expiração da tolerância
 
+    // Deve retornar para S4_PLANTED e o progresso deve ser ZERADO (não preserva 50%)
     TEST_ASSERT(rig.fsm.getState() == GameState::S4_PLANTED, "Apos timeout de tolerancia, FSM deve retornar a S4_PLANTED");
-    TEST_ASSERT(rig.fsm.getDefuseProgress().accumulatedTimeMs == 5000, "Penalidade deve preservar exatamente 50% (5000ms) se estava acima de 50%");
+    TEST_ASSERT(rig.fsm.getDefuseProgress().accumulatedTimeMs == 0, "Progresso de defuse DEVE ser zerado para 0ms");
+
+    // Tentar apertar o botão em S4_PLANTED não deve iniciar defuse (exige senha primeiro)
+    rig.button.setMockPressed(true);
+    simTime += 500;
+    rig.fsm.update(simTime);
+    TEST_ASSERT(rig.fsm.getState() == GameState::S4_PLANTED, "Em S4_PLANTED, apertar o botao nao deve iniciar defuse sem senha");
+    rig.button.setMockPressed(false);
+
+    // CT coloca a senha novamente "12345#"
+    rig.typeString("12345", simTime);
+    rig.keypad.injectKey('#');
+    simTime += 50;
+    rig.fsm.update(simTime);
+    TEST_ASSERT(rig.fsm.getState() == GameState::S5_DEFUSING, "Deve retornar para S5_DEFUSING apos nova insercao de senha");
+    TEST_ASSERT(rig.fsm.getDefuseProgress().accumulatedTimeMs == 0, "A progressao do defuse deve comecar estritamente do zero");
+
+    // Pressiona o botão e confirma que a progressão recomeça do zero e requer os 10s integrais
+    rig.button.setMockPressed(true);
+    simTime += 5000;
+    rig.fsm.update(simTime);
+    TEST_ASSERT(rig.fsm.getState() == GameState::S5_DEFUSING, "Com 5s acumulados, nao deve desarmar ainda");
+    TEST_ASSERT(rig.fsm.getDefuseProgress().accumulatedTimeMs == 5000, "Progresso deve estar em 5000ms a partir do zero");
+
+    simTime += 5000;
+    rig.fsm.update(simTime);
+    TEST_ASSERT(rig.fsm.getState() == GameState::S6_DEFUSED, "Deve desarmar somente apos acumular os 10s completos");
 
     return true;
 }

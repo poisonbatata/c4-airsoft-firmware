@@ -151,7 +151,7 @@ stateDiagram-v2
 | **S5: Defusando** | Botão mantido até 100% (10s) | **S6: Defusada** | Bip duplo de sucesso, LED azul fixo brilhante, LCD: "BOMB DEFUSED / CTS WIN". |
 | **S5: Defusando** | Botão solto durante defuse | **S5: Defusando (Pausa)** | Interrompe contagem de defuse e inicia timer de tolerância de 5 segundos. LCD: "DEFUSE PAUSADO". |
 | **S5: Defusando** | Botão pressionado novamente (< 5s) | **S5: Defusando** | Retoma acúmulo de tempo de defuse do ponto em que parou. Cancela timer de tolerância. |
-| **S5: Defusando** | Tolerância de 5s expirada | **S4: Plantada** | Aplica regra de penalidade: se progresso > 50%, preserva 50%; senão zera o progresso. Volta a S4. |
+| **S5: Defusando** | Tolerância expirada | **S4: Plantada** | Zera o progresso acumulado (0%). Exige nova inserção de senha CT para reiniciar desarme do zero. |
 | **S5: Defusando** | Tempo geral atinge 0s durante defuse | **S7: Fim TR** | Prioridade do tempo geral: explosão cenográfica tem precedência sobre desarme incompleto. |
 | **S6 / S7: Fim** | Tecla `A` pressionada | **S2: Menu** | Reinicia máquina de estados para novo ciclo de jogo, limpando buffers e temporizadores. |
 
@@ -169,7 +169,7 @@ Os seguintes critérios são condições binárias e verificáveis de sucesso pa
 - **AC-06 (Condição de Entrada no Defuse):** O sistema **MUST** exigir a validação bem-sucedida e exata da senha CT antes de permitir que o pressionamento do botão físico acumule tempo de desarme.
 - **AC-07 (Manutenção do Botão de Defuse):** O tempo de desarme **MUST** progredir exclusivamente enquanto o botão físico de defuse mantiver o nível lógico ativo (pressionado).
 - **AC-08 (Janela de Tolerância de Defuse Configurável):** Se o botão for solto durante o desarme, o software **MUST** respeitar o tempo de tolerância configurado via Web/NVS (0 a 30s). Se o tempo for configurado como 0s (sem tolerância), o desarme **MUST** ser interrompido e penalizado no mesmo instante da soltura.
-- **AC-09 (Regra de Penalidade de Desarme):** Caso a janela de tolerância expire (ou imediatamente caso tolerância = 0s), se o progresso acumulado for superior a 50%, o sistema **MUST** preservar 50% do tempo; se for inferior ou igual a 50%, **MUST** zerar o progresso acumulado.
+- **AC-09 (Reset Integral de Desarme ao Expirar Tolerância):** Caso a janela de tolerância expire (ou imediatamente caso tolerância = 0s ao soltar o botão durante o defuse), o sistema **MUST** zerar integralmente o progresso acumulado de defuse (0%), transitar para `S4: Plantada` e exigir nova validação de senha no teclado antes de permitir um novo início de desarme, cuja progressão do botão **MUST** recomeçar estritamente do zero.
 - **AC-10 (Precedência da Explosão):** Caso o tempo geral da rodada atinja 0 segundos enquanto o defensor estiver segurando o botão de defuse, o sistema **MUST** transitar imediatamente para `S7: Fim TR`, anulando o desarme.
 - **AC-11 (Feedback de Vitória CT):** Ao completar 100% do tempo de desarme, o sistema **MUST** transitar para `S6: Defusada`, iluminando a fita LED na cor Azul sólida e exibindo "CTS WIN" no LCD.
 - **AC-12 (Feedback de Vitória TR):** Ao esgotar o tempo da rodada sem desarme, o sistema **MUST** transitar para `S7: Fim TR`, iluminando a fita LED na cor Amarela sólida e emitindo o padrão sonoro final.

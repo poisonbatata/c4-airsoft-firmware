@@ -227,3 +227,6 @@ graph TD
 
 - [x] **Task 8.3 — Teste de Regressão de Rodadas Consecutivas (`test/test_fsm_core.cpp`)**
   - Adição do Teste 18 (`test_consecutive_rounds_defuse_accumulator_reset`), que executa uma rodada completa com defuse (10s), retorna ao menu via tecla `'A'`, inicia a rodada 2 e verifica que toques de 100 ms no botão não disparam o desarme, exigindo os 10s integrais. Total de 18/18 testes aprovados. Concluído.
+
+- [x] **Task 8.4 — Reset Integral de Desarme para 0% ao Expirar Tolerância (`src/game_fsm.cpp`, `spec.md`, `test/test_fsm_core.cpp`)**
+  - Atualização do manipulador `handleStateDefusing`: quando a tolerância de defuse expira (ou imediatamente com tolerância 0s ao soltar o botão durante o desarme), o progresso acumulado é estritamente zerado (`0%`), o estado retorna a `S4_PLANTED` e exige nova digitação da senha pelo CT no teclado para poder iniciar um novo ciclo de desarme com progressão recomeçando do zero. Atualizado Teste 6 e critério `AC-09`. Concluído.
